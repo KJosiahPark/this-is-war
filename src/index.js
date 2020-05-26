@@ -16,27 +16,69 @@ class App extends React.Component {
       counter: 0
     };
     this.deck = [];
+    this.fillDeck();
+    this.p1Hand = [];
+    this.p2Hand = [];
+
+    this.temp = true;
   }
 
+  /**
+   * fills the dek with 52 base cards (no joker, sorry)
+   */
   fillDeck = () => {
     const suits = ["spades", "clubs", "diamonds", "hearts"];
-    const cards = [...Array(13).keys()]; //0: ace ... 12: kings
+    const cards = [...Array(13).keys()]; //0: two ... 12: ace
     suits.forEach((suit) => {
       cards.forEach((number) => {
-        this.deck.push(new Card(suit, number));
+        this.deck.push(new PlayingCard(suit, number));
       })
     });
   }
 
-  componentDidMount = () => {
-    this.fillDeck();
-    clog(this.deck);
+  shuffleDeck = () => {
+    this.deck.sort(() => Math.random() - 0.5);
+  }
+
+  splitDeck = () => {
+    this.shuffleDeck();
+    const deckSize = this.deck.length;
+    for (let i = 0; i < Math.ceil(deckSize / 2); i++) {
+      this.p1Hand.push(this.deck.pop());
+      this.p2Hand.push(this.deck.pop());
+    }
+  }
+
+  playTurn = () => {
+    if (!this.p1Hand.length) {
+      //p1 loses
+    } else if (!this.p2Hand.length) {
+      //p2 loses
+    } else {
+      const p1play = this.p1Hand.pop();
+      const p2play = this.p2Hand.pop();
+      clog(p1play.toString());
+      clog(p2play.toString());
+      console.log(p1play.compare(p2play));
+    }
   }
 
   render() {
+    //how to make this run once?
+    if (this.temp) {
+      this.temp = false;
+      clog(this.deck);
+      this.shuffleDeck();
+      clog(this.deck);
+      this.splitDeck();
+      clog(this.p1Hand);
+      clog(this.p1Hand);
+    }
+
     return (
       <Container className="woot">
         <h1>This is War</h1>
+        <button onClick={this.playTurn}>play turn</button>
       </Container>
     )
   }
@@ -45,11 +87,11 @@ class App extends React.Component {
 /**
  * POJO - card in a deck
  */
-class Card {
+class PlayingCard {
   /**
    * creates a card
    * @param {String} suit 
-   * @param {Number} num 0: ace ... 12: kings
+   * @param {Number} num 0: two ... 12: ace
    */
   constructor(suit, num) {
     this.suit = suit;
@@ -62,6 +104,10 @@ class Card {
    */
   compare(other) {
     return this.num - other.num;
+  }
+
+  toString = () => {
+    return `${this.num + 2} of ${this.suit}`
   }
 }
 
