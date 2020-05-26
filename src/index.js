@@ -112,32 +112,40 @@ class App extends React.Component {
       } else {
         // it's a tie
         clog("THIS IS WAR");
-        //This
-        const p1lay1 = tempP1Hand.pop();
-        const p2lay1 = tempP2Hand.pop();
-        //Is
-        const p1lay2 = tempP1Hand.pop();
-        const p2lay2 = tempP2Hand.pop();
-        //War
-        outcome = this.playTurn(); //will handle its own card shifting
-        if (outcome > 0) {
-          //p1 won war
-          clog("p1 win war");
-          tempP1Hand.unshift(p1play);
-          tempP1Hand.unshift(p2play);
-          tempP1Hand.unshift(p1lay1);
-          tempP1Hand.unshift(p2lay1);
-          tempP1Hand.unshift(p1lay2);
-          tempP1Hand.unshift(p2lay2);
-        } else if (outcome < 0) {
-          //p2 won war
-          clog("p2 win war");
-          tempP2Hand.unshift(p1play);
-          tempP2Hand.unshift(p2play);
-          tempP2Hand.unshift(p1lay1);
-          tempP2Hand.unshift(p2lay1);
-          tempP2Hand.unshift(p1lay2);
-          tempP2Hand.unshift(p2lay2);
+        if (tempP1Hand.length < 3) { //p1 is too poor to war
+          tempP2Hand = tempP2Hand.concat(tempP1Hand);
+          tempP1Hand = [];
+        } else if (tempP2Hand.length < 3) { //p2 is too poor to war
+          tempP1Hand = tempP1Hand.concat(tempP2Hand);
+          tempP2Hand = [];
+        } else {
+          //This
+          const p1lay1 = tempP1Hand.pop();
+          const p2lay1 = tempP2Hand.pop();
+          //Is
+          const p1lay2 = tempP1Hand.pop();
+          const p2lay2 = tempP2Hand.pop();
+          //War
+          outcome = this.playTurn(); //will handle its own card shifting
+          if (outcome > 0) {
+            //p1 won war
+            clog("p1 win war");
+            tempP1Hand.unshift(p1play);
+            tempP1Hand.unshift(p2play);
+            tempP1Hand.unshift(p1lay1);
+            tempP1Hand.unshift(p2lay1);
+            tempP1Hand.unshift(p1lay2);
+            tempP1Hand.unshift(p2lay2);
+          } else if (outcome < 0) {
+            //p2 won war
+            clog("p2 win war");
+            tempP2Hand.unshift(p1play);
+            tempP2Hand.unshift(p2play);
+            tempP2Hand.unshift(p1lay1);
+            tempP2Hand.unshift(p2lay1);
+            tempP2Hand.unshift(p1lay2);
+            tempP2Hand.unshift(p2lay2);
+          }
         }
       }
 
@@ -164,7 +172,6 @@ class App extends React.Component {
         {/* <div className='woot'> */}
           <h1>This is War</h1>
           <button onClick={this.fillDeck}>fill deck</button>
-          <button onClick={this.shuffleDeck}>shuffle deck</button>
           <button onClick={this.splitDeck}>split deck</button>
           <button onClick={this.playTurn}>play turn</button>
           <button onClick={() => {
@@ -177,6 +184,11 @@ class App extends React.Component {
               this.playTurn();
             }
           }>play 25 turns</button>
+          <button onClick={() => {
+            for (let i = 0; i < 100; i++) 
+              this.playTurn();
+            }
+          }>play 100 turns</button>
         {/* </div> */}
         <Row>
           <Col className="deck">
