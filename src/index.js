@@ -3,10 +3,13 @@ import ReactDOM from 'react-dom';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 
 import './app.css';
 
+// debug console.log REMOVE LATER
 const clog = (toLog) => {
   console.log(toLog);
 }
@@ -16,12 +19,13 @@ class App extends React.Component {
     super(props);
 
     this.state = {
+      gameLen: 0,
       deck: [],
+      p1Hand: [],
+      p2Hand: []
     };
-    this.fillDeck();
-    this.p1Hand = [];
-    this.p2Hand = [];
 
+    // for clog-ing
     this.temp = true;
   }
 
@@ -42,6 +46,9 @@ class App extends React.Component {
     });
   }
 
+  /**
+   * shuffles deck
+   */
   shuffleDeck = () => {
     const tempDeck = this.state.deck;
     tempDeck.sort(() => Math.random() - 0.5);
@@ -50,31 +57,103 @@ class App extends React.Component {
     });
   }
 
+  /**
+   * splits deck
+   */
   splitDeck = () => {
-    this.shuffleDeck();
-    const deckSize = this.state.deck.length;
-    for (let i = 0; i < Math.ceil(deckSize / 2); i++) {
-      this.p1Hand.push(this.state.deck.pop());
-      this.p2Hand.push(this.state.deck.pop());
+    //lose a degree of flexibility
+    if (this.state.deck.length) {
+      this.shuffleDeck();
+      const deckSize = this.state.deck.length;
+      const p1Hand = [];
+      const p2Hand = [];
+      for (let i = 0; i < Math.ceil(deckSize / 2); i++) {
+        p1Hand.push(this.state.deck.pop());
+        p2Hand.push(this.state.deck.pop());
+      }
+      //lose a degree of flexibility
+      this.setState(prevState => {
+        return {
+          deck: [],
+          p1Hand: p1Hand,
+          p2Hand: p2Hand,
+        };
+      });
     }
-    //ingores flexibility
-    this.setState(prevState => {
-      return {deck: []};
-    });
   }
 
+  /**
+   * plays a turn
+   * @return {Number} outcome fo fight {+: p1 win, -: p2 win, 0: impossible (recurse on WAR), NaN: no fight}
+   */
   playTurn = () => {
-    if (!this.p1Hand.length) {
-      //p1 loses
-    } else if (!this.p2Hand.length) {
-      //p2 loses
+    if (!this.state.p1Hand.length) {
+      clog("Game Length: " + this.state.gameLen);
+    } else if (!this.state.p2Hand.length) {
+      clog("Game Length: " + this.state.gameLen);
     } else {
-      const p1play = this.p1Hand.pop();
-      const p2play = this.p2Hand.pop();
-      clog(p1play.toString());
-      clog(p2play.toString());
-      console.log(p1play.compare(p2play));
+      const tempP1Hand = this.state.p1Hand;
+      const tempP2Hand = this.state.p2Hand;
+      const p1play = tempP1Hand.pop();
+      const p2play = tempP2Hand.pop();
+      let outcome = p1play.compare(p2play);
+
+      clog(p1play + " vs " + p2play);
+      if (outcome > 0) {
+        //p1 win
+        clog("p1 win");
+        tempP1Hand.unshift(p1play);
+        tempP1Hand.unshift(p2play);
+      } else if (outcome < 0) {
+        //p2 win
+        clog("p2 win");
+        tempP2Hand.unshift(p1play);
+        tempP2Hand.unshift(p2play);
+      } else {
+        // it's a tie
+        clog("THIS IS WAR");
+        //This
+        const p1lay1 = tempP1Hand.pop();
+        const p2lay1 = tempP2Hand.pop();
+        //Is
+        const p1lay2 = tempP1Hand.pop();
+        const p2lay2 = tempP2Hand.pop();
+        //War
+        outcome = this.playTurn(); //will handle its own card shifting
+        if (outcome > 0) {
+          //p1 won war
+          clog("p1 win war");
+          tempP1Hand.unshift(p1play);
+          tempP1Hand.unshift(p2play);
+          tempP1Hand.unshift(p1lay1);
+          tempP1Hand.unshift(p2lay1);
+          tempP1Hand.unshift(p1lay2);
+          tempP1Hand.unshift(p2lay2);
+        } else if (outcome < 0) {
+          //p2 won war
+          clog("p2 win war");
+          tempP2Hand.unshift(p1play);
+          tempP2Hand.unshift(p2play);
+          tempP2Hand.unshift(p1lay1);
+          tempP2Hand.unshift(p2lay1);
+          tempP2Hand.unshift(p1lay2);
+          tempP2Hand.unshift(p2lay2);
+        }
+      }
+
+      this.setState(prevState => {
+        return {
+          gameLen: prevState.gameLen + 1,
+          p1Hand: tempP1Hand,
+          p2Hand: tempP2Hand
+        }
+      });
+
+      clog(outcome);
+      return outcome; // cant't return 0
     }
+
+    return Number.NaN;
   }
 
   render() {
@@ -88,18 +167,40 @@ class App extends React.Component {
           <button onClick={this.shuffleDeck}>shuffle deck</button>
           <button onClick={this.splitDeck}>split deck</button>
           <button onClick={this.playTurn}>play turn</button>
+          <button onClick={() => {
+            for (let i = 0; i < 5; i++) 
+              this.playTurn();
+            }
+          }>play 5 turns</button>
+          <button onClick={() => {
+            for (let i = 0; i < 25; i++) 
+              this.playTurn();
+            }
+          }>play 25 turns</button>
         {/* </div> */}
-        <div className="deck">
-          {this.state.deck.map((card) => {
-            return <PlayingCardDisplay num={card.colloqNum()} suit={card.suit}/>
-          })}
-        </div>
-        {/* <div className="p1hand">
-          <PlayingCardDisplay />
-        </div>
-        <div className="p2hand">
-          <PlayingCardDisplay />
-        </div> */}
+        <Row>
+          <Col className="deck">
+            <h1>Deck</h1>
+            <h3>count: {this.state.deck.length}</h3>
+            {this.state.deck.map((card) => {
+              return <PlayingCardDisplay num={card.colloqNum()} suit={card.suit}/>
+            })}
+          </Col>
+          <Col className="p1hand">
+            <h1>Player 1 Hand</h1>
+            <h3>count: {this.state.p1Hand.length}</h3>
+            {this.state.p1Hand.slice().reverse().map((card) => { // slice reverse rerverses display of list w/o changing contents
+              return <PlayingCardDisplay num={card.colloqNum()} suit={card.suit}/>
+            })}
+          </Col>
+          <Col className="p2hand">
+            <h1>Player 2 Hand</h1>
+            <h3>count: {this.state.p2Hand.length}</h3>
+            {this.state.p2Hand.slice().reverse().map((card) => {
+              return <PlayingCardDisplay num={card.colloqNum()} suit={card.suit}/>
+            })}
+          </Col>
+        </Row>
       </Container>
     )
   }
@@ -133,7 +234,7 @@ class PlayingCard {
   }
 
   toString = () => {
-    return `${this.colloqNum} of ${this.suit}`
+    return `${this.colloqNum()} of ${this.suit}`
   }
 }
 
