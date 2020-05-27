@@ -24,5 +24,6 @@ yarn-error.log*
 
 # my
 index-copy.js
+#   -hold files have my *prettyness
 *-hold
 .env
