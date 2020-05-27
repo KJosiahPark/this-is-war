@@ -9,8 +9,11 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Button from 'react-bootstrap/Button';
 
+import firebase from "firebase";
+
 import './app.css';
 import PlayingCard, { PlayingCardDisplay } from './playingCardNeeds'
+
 
 // debug console.log REMOVE LATER
 const clog = (toLog) => {
@@ -24,11 +27,51 @@ class App extends React.Component {
     this.state = {
       gameState: '',
       gameLen: 0,
-      cheater: false,
+      cheated: false,
       deck: [],
       p1Hand: [],
-      p2Hand: []
+      p2Hand: [],
+      winsDisplay: 0,
+      lossesDisplay: 0,
     };
+
+    const firebaseConfig = {
+      apiKey: "***REMOVED***",
+      authDomain: "***REMOVED***",
+      databaseURL: "***REMOVED***",
+      projectId: "***REMOVED***",
+      storageBucket: "***REMOVED***.appspot.com",
+      messagingSenderId: "***REMOVED***",
+      appId: "1:***REMOVED***:web:54062fd53f1396db2a71a5",
+      measurementId: "***REMOVED***"
+    }
+    this.fireDB = firebase.initializeApp(firebaseConfig);
+    this.fireDB.database().ref("woot/war").on("value", this.fbdbUpdateKDA, this.fbdbGotErr);
+  }
+
+  fbdbUpdateKDA = (data) => {
+    let wins = 0;
+    let losses = 0;
+    if (data.val() === null) {
+      this.fireDB.database().ref("woot/war").update({
+        wins: wins,
+        losses: losses
+      });
+    } else {
+      wins = data.val().wins;
+      losses = data.val().losses;
+    }
+    this.setState((prevState) => {
+      return {
+        winsDisplay: wins,
+        lossesDisplay: losses
+      }
+    })
+  }
+
+  fbdbGotErr = (err) => {
+    console.log('Firebase DB error');
+    console.log(err);
   }
 
   /**
@@ -47,7 +90,7 @@ class App extends React.Component {
       return {
         gameState: '',
         gameLen: 0,
-        cheater: false,
+        cheated: false,
         deck: tempDeck,
         p1Hand: [],
         p2Hand: []
@@ -177,13 +220,13 @@ class App extends React.Component {
       this.setState((prevState) => {
         return {gameState: 'the app wins'}
       })
-      this.recordScore();
+      this.recordScore(false);
     } else if (!tempP2Hand.length) {
       clog('Game Length: ' + this.state.gameLen);
       this.setState((prevState) => {
         return {gameState: 'you win'}
       })
-      this.recordScore();
+      this.recordScore(true);
     } else {
       this.setState(prevState => {
         return {
@@ -198,9 +241,38 @@ class App extends React.Component {
     return outcome; // cant't return 0
   }
 
-  recordScore = () => {
+  recordScore = (didWin) => {
     if (!this.state.cheated) {
       
+      this.fireDB.database().ref("woot/war").once("value").then((snapshot) => {
+        let wins = 0;
+        let losses = 0;
+        if (snapshot.val() === null) {
+          this.fireDB.database().ref("woot/war").update({
+            wins: wins,
+            losses: losses
+          });
+        } else {
+          wins = snapshot.val().wins;
+          losses = snapshot.val().losses;
+        }
+
+        switch (didWin) {
+          case true:
+            this.fireDB.database().ref("woot/war").update({
+              wins: wins + 1,
+            });
+            break;
+          case false:
+            this.fireDB.database().ref("woot/war").update({
+              losses: losses + 1
+            });
+            break;
+          default:
+            clog('DB update error');
+            break;
+        }
+      });
     }
   }
 
@@ -209,8 +281,13 @@ class App extends React.Component {
 
     return (
         <Container>
+          <button onClick={() => this.recordScore(true)}>fireDB Win Test</button>
+          <button onClick={() => this.recordScore(false)}>fireDB Lose Test</button>
           <Row className="justify-content-md-center">
             <h1>THIS IS WAR</h1>
+          </Row>
+          <Row className="justify-content-md-center">
+            <h1>Your Scores: {this.state.winsDisplay}W:{this.state.lossesDisplay}L</h1>
           </Row>
           <Row className="justify-content-md-center">
             <Button
@@ -264,7 +341,7 @@ class App extends React.Component {
             <h1 style={{color: "green"}}>{this.state.gameState}</h1>
           </Row>
           <Row className="justify-content-md-center">
-            <h3 style={{color: "red"}}>{this.state.cheater && "you cheated. your score will not be recorded"}</h3>
+            <h3 style={{color: "red"}}>{this.state.cheated && "you cheated. your score will not be recorded"}</h3>
           </Row>
           <Row className="justify-content-md-center">
             <Col className='deck'>
@@ -296,10 +373,10 @@ class App extends React.Component {
                       </Tooltip>
                     } >
                     <Button
-                      variant="success"
+                      variant="danger"
                       onClick={() => {
                         this.setState(prev => {
-                          return {cheater: true};
+                          return {cheated: true};
                         });
                       }} >Click to Cheat</Button>
                   </OverlayTrigger>
