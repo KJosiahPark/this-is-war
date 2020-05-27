@@ -170,12 +170,12 @@ class App extends React.Component {
       }
     }
 
-    if (!this.state.p1Hand.length) {
+    if (!tempP1Hand.length) {
       clog('Game Length: ' + this.state.gameLen);
       this.setState((prevState) => {
         return {gameState: 'the app wins'}
       })
-    } else if (!this.state.p2Hand.length) {
+    } else if (!tempP2Hand.length) {
       clog('Game Length: ' + this.state.gameLen);
       this.setState((prevState) => {
         return {gameState: 'you win'}
@@ -202,9 +202,6 @@ class App extends React.Component {
         <Container>
           <Row className="justify-content-md-center">
             <h1>THIS IS WAR</h1>
-          </Row>
-          <Row className="justify-content-md-center">
-            <h1>{this.state.gameState}</h1>
           </Row>
           <Row className="justify-content-md-center">
             <Button
@@ -253,6 +250,9 @@ class App extends React.Component {
                 }
               }}
               variant='primary' >play 100 turns</Button>
+          </Row>
+          <Row className="justify-content-md-center">
+            <h1 style={{color: "green"}}>{this.state.gameState}</h1>
           </Row>
           <Row className="justify-content-md-center">
             <Col className='deck'>
