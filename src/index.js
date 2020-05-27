@@ -9,7 +9,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import Button from 'react-bootstrap/Button';
 
-import firebase from "firebase";
+import firebase from 'firebase';
 
 import './app.css';
 import PlayingCard, { PlayingCardDisplay } from './playingCardNeeds'
@@ -35,25 +35,32 @@ class App extends React.Component {
       lossesDisplay: 0,
     };
 
+    require('dotenv').config({ path: '../.env' });
+    console.log(process.env);
+
     const firebaseConfig = {
-      apiKey: "***REMOVED***",
-      authDomain: "***REMOVED***",
-      databaseURL: "***REMOVED***",
-      projectId: "***REMOVED***",
-      storageBucket: "***REMOVED***.appspot.com",
-      messagingSenderId: "***REMOVED***",
-      appId: "1:***REMOVED***:web:54062fd53f1396db2a71a5",
-      measurementId: "***REMOVED***"
+      apiKey: process.env.REACT_APP_apiKey,
+      authDomain: process.env.REACT_APP_authDomain,
+      databaseURL: process.env.REACT_APP_databaseURL,
+      projectId: process.env.REACT_APP_projectId,
+      storageBucket: process.env.REACT_APP_storageBucket,
+      messagingSenderId: process.env.REACT_APP_messagingSenderId,
+      appId: process.env.REACT_APP_appId,
+      measurementId: process.env.REACT_APP_measurementId
     }
-    this.fireDB = firebase.initializeApp(firebaseConfig);
-    this.fireDB.database().ref("woot/war").on("value", this.fbdbUpdateKDA, this.fbdbGotErr);
+    // if (!firebase.apps.length) {
+      this.fireDB = firebase.initializeApp(firebaseConfig);
+    // } else {
+    //   this.fireDB = firebase;
+    // }
+    this.fireDB.database().ref('woot/war').on('value', this.fbdbUpdateKDA, this.fbdbGotErr);
   }
 
   fbdbUpdateKDA = (data) => {
     let wins = 0;
     let losses = 0;
     if (data.val() === null) {
-      this.fireDB.database().ref("woot/war").update({
+      this.fireDB.database().ref('woot/war').update({
         wins: wins,
         losses: losses
       });
@@ -244,11 +251,11 @@ class App extends React.Component {
   recordScore = (didWin) => {
     if (!this.state.cheated) {
       
-      this.fireDB.database().ref("woot/war").once("value").then((snapshot) => {
+      this.fireDB.database().ref('woot/war').once('value').then((snapshot) => {
         let wins = 0;
         let losses = 0;
         if (snapshot.val() === null) {
-          this.fireDB.database().ref("woot/war").update({
+          this.fireDB.database().ref('woot/war').update({
             wins: wins,
             losses: losses
           });
@@ -259,12 +266,12 @@ class App extends React.Component {
 
         switch (didWin) {
           case true:
-            this.fireDB.database().ref("woot/war").update({
+            this.fireDB.database().ref('woot/war').update({
               wins: wins + 1,
             });
             break;
           case false:
-            this.fireDB.database().ref("woot/war").update({
+            this.fireDB.database().ref('woot/war').update({
               losses: losses + 1
             });
             break;
@@ -281,33 +288,33 @@ class App extends React.Component {
 
     return (
         <Container>
-          <button onClick={() => this.recordScore(true)}>fireDB Win Test</button>
-          <button onClick={() => this.recordScore(false)}>fireDB Lose Test</button>
-          <Row className="justify-content-md-center">
+          {/* <button onClick={() => this.recordScore(true)}>fireDB Win Test</button>
+          <button onClick={() => this.recordScore(false)}>fireDB Lose Test</button> */}
+          <Row className='justify-content-md-center'>
             <h1>THIS IS WAR</h1>
           </Row>
-          <Row className="justify-content-md-center">
-            <h1>Your Scores: {this.state.winsDisplay}W:{this.state.lossesDisplay}L</h1>
+          <Row className='justify-content-md-center'>
+            <h1>Your Scores: {this.state.winsDisplay}W : {this.state.lossesDisplay}L</h1>
           </Row>
-          <Row className="justify-content-md-center">
+          <Row className='justify-content-md-center'>
             <Button
               onClick={this.fillDeck}
-              variant="secondary" >fill deck</Button>
+              variant='secondary' >fill deck</Button>
             <Button
               onClick={this.splitDeck}
-              variant="secondary"> split deck</Button>
+              variant='secondary'> split deck</Button>
           </Row>
-          <Row className="justify-content-md-center">
+          <Row className='justify-content-md-center'>
             <OverlayTrigger
-              placement="left"
+              placement='left'
               delay={{ show: 250, hide: 400 }}
               overlay={
-                <Tooltip id="button-tooltip">
+                <Tooltip id='button-tooltip'>
                   Sometimes the game get's stuck in a loop (due to the nature of the game)
                 </Tooltip>
               } >
               <Button
-                variant="success"
+                variant='success'
                 onClick={this.shuffleHand} >
                 shuffle hand
               </Button>
@@ -337,13 +344,13 @@ class App extends React.Component {
               }}
               variant='primary' >play 100 turns</Button>
           </Row>
-          <Row className="justify-content-md-center">
-            <h1 style={{color: "green"}}>{this.state.gameState}</h1>
+          <Row className='justify-content-md-center'>
+            <h1 style={{color: 'green'}}>{this.state.gameState}</h1>
           </Row>
-          <Row className="justify-content-md-center">
-            <h3 style={{color: "red"}}>{this.state.cheated && "you cheated. your score will not be recorded"}</h3>
+          <Row className='justify-content-md-center'>
+            <h3 style={{color: 'red'}}>{this.state.cheated && 'you cheated. your score will not be recorded'}</h3>
           </Row>
-          <Row className="justify-content-md-center">
+          <Row className='justify-content-md-center'>
             <Col className='deck'>
               <h1>Deck</h1>
               <h3>count: {this.state.deck.length}</h3>
@@ -364,16 +371,16 @@ class App extends React.Component {
               {this.state.p2Hand.slice().reverse().map((card) => {
                 return <PlayingCardDisplay num={
                   <OverlayTrigger
-                    trigger="click"
-                    placement="right"
+                    trigger='click'
+                    placement='right'
                     delay={{ show: 250, hide: 400 }}
                     overlay={
-                      <Tooltip id="button-tooltip">
+                      <Tooltip id='button-tooltip'>
                         {card.colloqNum()}
                       </Tooltip>
                     } >
                     <Button
-                      variant="danger"
+                      variant='danger'
                       onClick={() => {
                         this.setState(prev => {
                           return {cheated: true};
