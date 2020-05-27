@@ -35,7 +35,7 @@ class App extends React.Component {
       lossesDisplay: 0,
     };
 
-    require('dotenv').config({ path: '../.env' });
+    // require('dotenv').config({ path: '../.env' });
     console.log(process.env);
 
     const firebaseConfig = {
