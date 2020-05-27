@@ -24,13 +24,11 @@ class App extends React.Component {
     this.state = {
       gameState: '',
       gameLen: 0,
+      cheater: false,
       deck: [],
       p1Hand: [],
       p2Hand: []
     };
-
-    // for clog-ing
-    this.temp = true;
   }
 
   /**
@@ -48,7 +46,11 @@ class App extends React.Component {
     this.setState(prevState => {
       return {
         gameState: '',
-        deck: tempDeck
+        gameLen: 0,
+        cheater: false,
+        deck: tempDeck,
+        p1Hand: [],
+        p2Hand: []
       };
     });
   }
@@ -175,11 +177,13 @@ class App extends React.Component {
       this.setState((prevState) => {
         return {gameState: 'the app wins'}
       })
+      this.recordScore();
     } else if (!tempP2Hand.length) {
       clog('Game Length: ' + this.state.gameLen);
       this.setState((prevState) => {
         return {gameState: 'you win'}
       })
+      this.recordScore();
     } else {
       this.setState(prevState => {
         return {
@@ -189,10 +193,15 @@ class App extends React.Component {
         }
       });
     }
-      
-
+    
     clog(outcome);
     return outcome; // cant't return 0
+  }
+
+  recordScore = () => {
+    if (!this.state.cheated) {
+      
+    }
   }
 
   render() {
@@ -255,6 +264,9 @@ class App extends React.Component {
             <h1 style={{color: "green"}}>{this.state.gameState}</h1>
           </Row>
           <Row className="justify-content-md-center">
+            <h3 style={{color: "red"}}>{this.state.cheater && "you cheated. your score will not be recorded"}</h3>
+          </Row>
+          <Row className="justify-content-md-center">
             <Col className='deck'>
               <h1>Deck</h1>
               <h3>count: {this.state.deck.length}</h3>
@@ -275,6 +287,7 @@ class App extends React.Component {
               {this.state.p2Hand.slice().reverse().map((card) => {
                 return <PlayingCardDisplay num={
                   <OverlayTrigger
+                    trigger="click"
                     placement="right"
                     delay={{ show: 250, hide: 400 }}
                     overlay={
@@ -282,7 +295,13 @@ class App extends React.Component {
                         {card.colloqNum()}
                       </Tooltip>
                     } >
-                    <Button variant="success">Hover me to see</Button>
+                    <Button
+                      variant="success"
+                      onClick={() => {
+                        this.setState(prev => {
+                          return {cheater: true};
+                        });
+                      }} >Click to Cheat</Button>
                   </OverlayTrigger>
                 } suit={card.suit}/>
               })}

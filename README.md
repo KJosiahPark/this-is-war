@@ -1,3 +1,4 @@
 # This is War
-
-**not finished**
+- **fucntionality**: completed
+- **firebase**: nope
+- **pretty**: ... :sweat:
